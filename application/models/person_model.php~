@@ -1,0 +1,44 @@
+<?php
+class Person_model extends CI_Model {
+	
+	private $apotek= 'apotek';
+	
+	function __construct(){
+		parent::__construct();
+	}
+	
+	function list_all(){
+		$this->db->order_by('id','asc');
+		return $this->db->get($apotek);
+	}
+	
+	function count_all(){
+		return $this->db->count_all($this->apotek);
+	}
+	
+	function get_paged_list($limit = 10, $offset = 0){
+		$this->db->order_by('id','asc');
+		return $this->db->get($this->apotek, $limit, $offset);
+	}
+	
+	function get_by_id($id){
+		$this->db->where('id', $id);
+		return $this->db->get($this->apotek);
+	}
+	
+	function save($person){
+		$this->db->insert($this->apotek, $person);
+		return $this->db->insert_id();
+	}
+	
+	function update($id, $person){
+		$this->db->where('id', $id);
+		$this->db->update($this->apotek, $person);
+	}
+	
+	function delete($id){
+		$this->db->where('id', $id);
+		$this->db->delete($this->apotek);
+	}
+}
+?>

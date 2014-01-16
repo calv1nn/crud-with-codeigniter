@@ -1,0 +1,23 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+   <title>Simple Login with CodeIgniter</title>
+ </head>
+ <body>
+   <h1>Simple Login with CodeIgniter</h1>
+<table>
+		<tr><th><img src="http://www.pharmametriclabs.com/Portals/9/PML/Logo/UP.jpg"></th><th>
+	<div id="body">
+		<?php 
+		echo form_open("konsumen/check_login");
+		echo "Username " . form_input("uname","");
+		echo "<br/>Password " . form_password("pass","");
+		echo "<br/>".form_submit('mysubmit', 'Submit');
+		echo form_close();
+		?>
+	</div>
+</th></table>
+ </body>
+</html>
+
+
