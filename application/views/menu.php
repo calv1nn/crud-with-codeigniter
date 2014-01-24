@@ -51,8 +51,9 @@
 	</head>
 	<body>
 	   <div class = "header">
-	     <p><a href="http://calvinbahal.wordpress.com" target="blank">Calvin Bahal Marpaung</a></p>
-	   </div>
+	     <p>Welcome  <?php echo ($this->session->userdata('manager',TRUE) == 'admin' ? "Manager":"Admin")?>
+	  </p>
+	     </div>
 	   <div class = "container" style = "">
 
 	     <ul class = "nice-menu">

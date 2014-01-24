@@ -41,5 +41,12 @@ class Model_obat extends CI_Model {
 		$this->db->where('id', $id);
 		$this->db->delete($this->obat);
 	}
+	
+	function insert($id,$stok,$buy){
+		$this->db->insert('transaksi',$buy);
+		
+		$this->db->where('id', $id);
+		$this->db->update($this->obat, $stok);
+	}
 }
 ?>

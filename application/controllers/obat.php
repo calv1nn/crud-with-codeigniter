@@ -22,7 +22,8 @@ class Obat extends CI_Controller {
 	function index($offset = 0)
 	{
 		date_default_timezone_set('UTC');
-		// offset
+		if($this->session->userdata('admin',TRUE) or $this->session->userdata('manager',TRUE) ){
+			// offset
 		$uri_segment = 3;
 		$offset = $this->uri->segment($uri_segment);
 		
@@ -45,11 +46,21 @@ class Obat extends CI_Controller {
 		$i = 0 + $offset;
 		foreach ($obats as $obat)
 		{
+			if ($this->session->userdata('admin',TRUE)) {
 			$this->table->add_row($obat->id, $obat->nama, $obat->golongan, $obat->stok, $obat->harga ,
 				anchor('obat/view/'.$obat->id,'view',array('class'=>'view')).' '.
 				anchor('obat/update/'.$obat->id,'update',array('class'=>'update')).' '.
-				anchor('obat/delete/'.$obat->id,'delete',array('class'=>'delete','onclick'=>"return confirm('Are you sure want to delete this Obat?')"))
+				anchor('obat/buy/'.$obat->id,'buy',array('class'=>'buy','onclick'=>"return confirm('Are you sure want to buy this Obat?')"))
 			);
+			}else if ($this->session->userdata('manager',TRUE))
+				{
+					//echo "2";die;
+					$this->table->add_row($obat->id, $obat->nama, $obat->golongan, $obat->stok, $obat->harga ,
+							anchor('obat/view/'.$obat->id,'view',array('class'=>'view'))
+					);
+				}
+		}
+		
 		}
 		$data['table'] = $this->table->generate();
 		
@@ -102,21 +113,24 @@ class Obat extends CI_Controller {
 			$config['max_size']	= '1000';
 			$config['max_width']  = '10240';
 			$config['max_height']  = '7680';
-			
+			//print_r($config);die;
 // 			$_FILES['userfile']['name'] = $_POST['userfile'];
 // 			$_FILES['userfile']['tmp_name'] = $_POST['userfile'];
 // 			move_uploaded_file($_FILES['userfile']['tmp_name'], "uploads/".$_POST['userfile']);
 			//echo $_POST['userfile']['tmp_name'];die;
 			$this->load->library('upload', $config);
 			
-			 if ( ! $this->upload->do_upload('userfile'))
+			 if (!$this->upload->do_upload())
 			{
 				$error = array('error' => $this->upload->display_errors());
 				//redirect('obat/addobat'); 
 				//echo "GAGAL";
+				//echo "1";die;
+				$data['message'] = "gagal";
 			}
 			else
 			{ 
+			
 				$data = $this->upload->data();
 				//$this->users->insert_user($uname,$pass,$jk,$agm,$data['file_name']);
 			
@@ -169,10 +183,10 @@ class Obat extends CI_Controller {
 		$this->form_data->harga = $obat->harga;
 		
 		// set common properties
-		$data['title'] = 'Update Costumer';
+		$data['title'] = 'Update Obat';
 		$data['message'] = 'Kolom dengan * harus diisi';
 		$data['action'] = site_url('obat/updateobat');
-		$data['link_back'] = anchor('obat/index/','Back to list of costumer',array('class'=>'back'));
+		$data['link_back'] = anchor('obat/index/','Back to list of obat',array('class'=>'back'));
 	
 		// load view
 		$this->load->view('EditObat', $data);
@@ -195,6 +209,7 @@ class Obat extends CI_Controller {
 		if ($this->form_validation->run() == FALSE)
 		{
 			$data['message'] = '';
+			//echo "1";die;
 		}
 		else
 		{
@@ -206,6 +221,7 @@ class Obat extends CI_Controller {
 					'gambar' => $this->input->post('gambar'),	
 					'harga' => $this->input->post('harga')
 			);
+			//echo "2";die;
 			$this->Model_obat->update($id,$obat);
 			
 			// set user message
@@ -216,13 +232,63 @@ class Obat extends CI_Controller {
 		$this->load->view('EditObat', $data);
 	}
 	
-	function delete($id)
+	function buy($id)
 	{
-		// delete obat
-		$this->Model_obat->delete($id);
+		date_default_timezone_set('UTC');
+		// set common properties
+	
+		$data['title'] = 'Obat Details';
+		$data['link_back'] = anchor('obat/index/','Back to list of Obat',array('class'=>'back'));
 		
-		// redirect to obat list page
-		redirect('obat/index/','refresh');
+		// get obat details
+		$data['obat'] = $this->Model_obat->get_by_id($id)->row();
+		
+		// load view
+		$this->load->view('BuyObat', $data);
+	}
+	
+	function buyobat()
+	{
+		date_default_timezone_set('UTC');
+		// set common properties
+		$data['title'] = 'Add new Obat';
+		$data['action'] = site_url('obat/buyobat');
+		$data['link_back'] = anchor('obat/index/','Back to list of Obat',array('class'=>'back'));
+		
+		$this->form_validation->set_rules('buy', 'buy', 'numerik|required');
+		$id = $this->input->post('id');
+		// run validation
+		if ($this->form_validation->run() == FALSE)
+		{
+			$data['message'] = 'Gagal';
+			
+		}
+		else
+		{
+			$total = $this->input->post('harga')*$this->input->post('buy');
+			if ($this->input->post('stok') > $this->input->post('buy')) 
+			{
+				$buy=array('id_obat' => $this->input->post('id'),
+							'jumlah' => $this->input->post('buy'),	
+					'total_harga' => $total);
+				$stok1 = $this->input->post('stok')-$this->input->post('buy');
+				$stok= array('stok'=>$stok1);
+				//echo $stok;die;
+				$this->Model_obat->insert($id,$stok,$buy);
+				$data['message'] = 'Berhasil';
+				//echo "3";die;
+			} else 
+			{
+				$data['message'] = 'Stok Kurang CUk';
+			}
+			
+		}
+	
+		// load view
+		$id = $this->input->post('id');
+		//print_r($id);die;
+		$data['obat'] = $this->Model_obat->get_by_id($id)->row();
+		$this->load->view('BuyObat', $data);
 	}
 	
 	// set empty default form field values
@@ -239,16 +305,19 @@ class Obat extends CI_Controller {
 	// validation rules
 	function _set_rules()
 	{
+		//$this->form_validation->set_rules('id', 'ID', 'trim|required');
 		$this->form_validation->set_rules('nama', 'Name', 'trim|required');
 		$this->form_validation->set_rules('golongan', 'golongan', 'trim|required');
 		$this->form_validation->set_rules('stok', 'stok', 'trim|required');
-		//$this->form_validation->set_rules('gambar', 'gambar', 'trim|required');
-		$this->form_validation->set_rules('harga', 'gambar', 'trim|required');
+		//$this->form_validation->set_rules('gambar', 'gambar', 'required');
+		//$this->form_validation->set_rules('buy', 'buy', 'trim|required');
+		$this->form_validation->set_rules('harga', 'harga', 'trim|required');
 		
 		$this->form_validation->set_message('required', '* required');
 		$this->form_validation->set_message('isset', '* required');
 		$this->form_validation->set_error_delimiters('<p class="error">', '</p>');
 	}
+	
 	
 	
 }

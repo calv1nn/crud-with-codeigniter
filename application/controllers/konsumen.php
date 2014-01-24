@@ -23,7 +23,7 @@ class Konsumen extends CI_Controller {
 	{
 		date_default_timezone_set('UTC');
 		// offset
-		if($this->session->userdata('login_valid')){
+		if($this->session->userdata('admin',TRUE)){
 			$this->load->model('model_konsumen');
 			$data['uname']=$this->session->userdata('uname');
 		$uri_segment = 3;
@@ -48,17 +48,58 @@ class Konsumen extends CI_Controller {
 		$i = 0 + $offset;
 		foreach ($konsumens as $konsumen)
 		{
-			$this->table->add_row(++$i, $konsumen->name, strtoupper($konsumen->gender)=='M'? 'Pria':'Perempuan', date('d-m-Y',strtotime($konsumen->dob)), 
-				anchor('konsumen/view/'.$konsumen->id,'view',array('class'=>'view')).' '.
-				anchor('konsumen/update/'.$konsumen->id,'update',array('class'=>'update')).' '.
-				anchor('konsumen/delete/'.$konsumen->id,'delete',array('class'=>'delete','onclick'=>"return confirm('Are you sure want to delete this Customer?')"))
-			);
+			if ($this->session->userdata('admin',TRUE)) {
+				//echo "1";die;
+				$this->table->add_row(++$i, $konsumen->name, strtoupper($konsumen->gender)=='M'? 'Pria':'Perempuan', date('d-m-Y',strtotime($konsumen->dob)), 
+					anchor('konsumen/view/'.$konsumen->id,'view',array('class'=>'view')).' '.
+					anchor('konsumen/update/'.$konsumen->id,'update',array('class'=>'update')).' '.
+					anchor('konsumen/delete/'.$konsumen->id,'delete',array('class'=>'delete','onclick'=>"return confirm('Are you sure want to delete this Customer?')"))
+				
+				);
+			}
 		}
 		$data['table'] = $this->table->generate();
 		
 		// load view
 		$this->load->view('ListKonsumen', $data);
 	
+		} else if ($this->session->userdata('manager',TRUE)) {
+			$this->load->model('model_konsumen');
+			$data['uname']=$this->session->userdata('uname');
+			$uri_segment = 3;
+			$offset = $this->uri->segment($uri_segment);
+			
+			// load data
+			$konsumens = $this->Model_konsumen->get_paged_list($this->limit, $offset)->result();
+			
+			// generate pagination
+			$this->load->library('pagination');
+			$config['base_url'] = site_url('konsumen/index/');
+			$config['total_rows'] = $this->Model_konsumen->count_all();
+			$config['per_page'] = $this->limit;
+			$config['uri_segment'] = $uri_segment;
+			$this->pagination->initialize($config);
+			$data['pagination'] = $this->pagination->create_links();
+			
+			// generate table data
+			$this->load->library('table');
+			$this->table->set_empty("&nbsp;");
+			$this->table->set_heading('No', 'Nama', 'Jenis Kelamin', 'Tanggal Lahir (dd-mm-yyyy)', 'Actions');
+			$i = 0 + $offset;
+			foreach ($konsumens as $konsumen)
+			{
+				if ($this->session->userdata('manager',TRUE))
+				{
+					//echo "2";die;
+					$this->table->add_row(++$i, $konsumen->name, strtoupper($konsumen->gender)=='M'? 'Pria':'Perempuan', date('d-m-Y',strtotime($konsumen->dob)),
+							anchor('konsumen/view/'.$konsumen->id,'view',array('class'=>'view'))
+					);
+				}
+			}
+			$data['table'] = $this->table->generate();
+			
+			// load view
+			$this->load->view('ListKonsumen', $data);
 		}else{
 			redirect("konsumen/login");
 		}
@@ -120,7 +161,8 @@ class Konsumen extends CI_Controller {
 	{
 		date_default_timezone_set('UTC');
 		// set common properties
-		if($this->session->userdata('login_valid')){
+		
+		if($this->session->userdata('admin')){
 		$this->load->model('model_konsumen');
 		$data['uname']=$this->session->userdata('uname');
 		$data['title'] = 'Customer Details';
@@ -131,6 +173,17 @@ class Konsumen extends CI_Controller {
 		
 		// load view
 		$this->load->view('ViewKonsumen', $data);
+		} else if ($this->session->userdata('manager')) {
+			$this->load->model('model_konsumen');
+			$data['uname']=$this->session->userdata('uname');
+			$data['title'] = 'Customer Details';
+			$data['link_back'] = anchor('konsumen/index/','Back to list of customer',array('class'=>'back'));
+			
+			// get konsumen details
+			$data['konsumen'] = $this->Model_konsumen->get_by_id($id)->row();
+			
+			// load view
+			$this->load->view('ViewKonsumen', $data);
 		}else{
 			redirect("konsumen/login");
 		}
@@ -262,11 +315,21 @@ class Konsumen extends CI_Controller {
 	{
 		$this->load->model('model_konsumen');
 		$uname=$this->input->post("uname");
-		$pass=$this->input->post("pass");
+		$pass=md5($this->input->post("pass"));
 		if($this->Model_konsumen->check_login($uname,$pass))
-		{	$this->session->set_userdata('login_valid',true);
-			$this->session->set_userdata('uname',$uname);
+		{	
+			if ($uname=='manager') {
+				//echo '1';die;
+				$this->session->set_userdata('manager',$uname);
+				$this->session->set_userdata('manager',true);
+				redirect("konsumen/menu");
+			}
+			else {
+				//echo "2";die;
+			$this->session->set_userdata('admin',$uname);
+			$this->session->set_userdata('admin',true);
 			redirect("konsumen/menu");
+			}
 		}
 		else
 			redirect("konsumen/login");

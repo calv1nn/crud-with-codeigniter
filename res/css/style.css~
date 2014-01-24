@@ -2,7 +2,7 @@ body {
 	font-family:tahoma;
 	padding:0px;
 	margin:0px;
-	background:#f5f5f5
+	background:#BFBF96
 }
 
 div.content {
@@ -62,7 +62,7 @@ div.success {
 	width:80%;
 }
 
-a.update, a.delete, a.add, a.view, a.back {
+a.update, a.delete, a.add, a.buy, a.view, a.back, a.menu {
 	font-size: 9pt;
 	color:#900;
 	font-wight:bold;
@@ -77,6 +77,12 @@ a.delete {
 }
 a.add {
 	background:url(images/add.png) left center no-repeat;
+}
+a.buy {
+	background:url(images/buy.gif) left center no-repeat;
+}
+a.menu {
+	background:url(images/prev.gif) left center no-repeat;
 }
 a.view {
 	background:url(images/view.png) left center no-repeat;

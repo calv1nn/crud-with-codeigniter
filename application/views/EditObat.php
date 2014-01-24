@@ -10,10 +10,9 @@
 </head>
 <body>
 	<div class="content">
-	<!--  	<h1><?php echo $title; ?></h1>	-->
-		<h1>Add Obat</h1>
+	<h1><?php echo $title; ?></h1>	
 		<?php echo $message; ?>
-		<?php echo form_open_multipart('obat/addobat')?>
+		<?php echo form_open_multipart($action)?>
 		<div class="data">
 		<table>
 			<tr>
@@ -43,7 +42,7 @@
 			<tr>
 				<td valign="top">Gambar<span style="color:red;">*</span></td>
 				<td><input type="file" name="userfile">
-<?php echo form_error('gambar'); ?>
+
 				</td>
 			</tr>
 			<tr>

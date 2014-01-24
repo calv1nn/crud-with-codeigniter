@@ -14,8 +14,12 @@
 		<div class="paging"><?php echo $pagination; ?></div>
 		<div class="data"><?php echo $table; ?></div>
 		<br />
+		<?php 
+		if($this->session->userdata('admin',TRUE)){
+		?>
 		<?php echo anchor('konsumen/add/','add new data',array('class'=>'add')); ?>
 		<br />
+		<?php }?>
 		<?php echo anchor('konsumen/menu/','Back to Menu',array('class'=>'menu')); ?>
 	</div>
 </body>
